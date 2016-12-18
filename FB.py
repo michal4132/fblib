@@ -1,4 +1,5 @@
 import bs4
+import urllib.parse
 import requests
 import base64
 import time
@@ -7,7 +8,7 @@ class FB():
 
     def __init__(self, timeout=1):
         self.timeout = timeout
-    def login(self, email, password, headers = {'User-Agent': 'Mozilla/5.0'}):
+    def login(self, email, password, headers = {'User-Agent': 'FBLIB'}):
         self.payload = {
             'action': 'login',
             'email': email,
@@ -19,8 +20,37 @@ class FB():
         self.c.post('http://m.facebook.com/login.php', data=self.payload, headers=self.headers)
 
     def wall(self):
-        self.response = self.c.get('http://m.facebook.com', headers=self.headers)
-        return self.response.text
+        response = self.c.get('http://m.facebook.com', headers=self.headers)
+        return response.text
+
+    def get_lastest_msg(self, chatid):
+        msgs = []
+        response = self.c.get('https://m.facebook.com/messages/read/?tid='+chatid, headers=self.headers)
+        msgsoup = bs4.BeautifulSoup(response.text, "lxml")
+        for msggroup in msgsoup.find_all('div', {'id': 'messageGroup'}):
+            for div in msggroup.find_all('div'): # span in div in div in div
+                for indiv in div.find_all('div'):
+                    for uname in indiv.find_all('strong'):
+                        for span in indiv.find_all('span'):
+                            msgs.append([uname.text, span.text])
+        for u,m in msgs[:]:
+            if m=='':
+                msgs.remove([u,m])
+        try:
+            rr = msgs[-1]
+        except:
+#            print("Error")
+            rr = ""
+        return rr
+
+    def send_message(self, chatid, msg):
+        response = self.c.get('https://m.facebook.com/messages/read/?tid='+chatid, headers=self.headers)
+        fsoup = bs4.BeautifulSoup(response.text, "lxml")
+        for fb_dtsg in fsoup.find_all('input', {'name': 'fb_dtsg'}):
+            fb_dtsg = fb_dtsg['value']
+        response = self.c.post('https://m.facebook.com/messages/send/?icm=1&refid=12', data={'tids': chatid.replace('%3A', ':'), 'body': msg, 'waterfall_source': 'message', 'fb_dtsg': fb_dtsg}, headers=self.headers)
+        #TODO check if message sended
+        return True
 
     def all_friends(self):
         friends = dict()
@@ -61,7 +91,7 @@ class FB():
                     e = True
                     try:
                         href = id['href'][1:].split('?')[0]
-                        if(href == "profile.php"): # working, but not perfect
+                        if(href == "profile.php"): # working in most cases
                             friends[id.text] = id['href'][16:].split('&')[0]
                         elif(href.startswith("a/mobile/friends/add_friend.php") or href.startswith("notifications.php") or href.startswith("a/notifications.php")):
                             pass
