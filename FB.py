@@ -23,7 +23,7 @@ class FB():
         response = self.c.get('http://m.facebook.com', headers=self.headers)
         return response.text
 
-    def get_lastest_msg(self, chatid):
+    def get_lastest_msgs(self, chatid, nomsgs):
         msgs = []
         response = self.c.get('https://m.facebook.com/messages/read/?tid='+chatid, headers=self.headers)
         msgsoup = bs4.BeautifulSoup(response.text, "lxml")
@@ -37,7 +37,7 @@ class FB():
             if m=='':
                 msgs.remove([u,m])
         try:
-            rr = msgs[-1]
+            rr = msgs[-nomsgs]
         except:
 #            print("Error")
             rr = ""
