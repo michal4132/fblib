@@ -5,10 +5,8 @@ import threading
 run = True
 
 fb = FB()
-fb.login("email", "pass")
+fb.login("email", "pass") # password must be encoded to base64
 mid = "" #chat id (mid.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-userid = "" # user id
-tid = "" # second user id
 
 def bg(mid):
     global run
@@ -18,13 +16,13 @@ def bg(mid):
         if msg != lastmsg:
             print(msg[0]+": "+msg[1])
         lastmsg = msg
-        time.sleep(1)
+        time.sleep(0.5)
 
 t = threading.Thread(target=bg, args=(mid,)).start()
 while run:
     try:
         msg = input()
-        fb.send_message(mid, userid, tid, msg)
+        fb.send_message(mid, msg)
     except KeyboardInterrupt:
         run = False
 fb.close()
