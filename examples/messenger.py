@@ -1,5 +1,5 @@
 import os, sys,time
-from fblib.FB import FB
+from FB import FB
 import threading
 
 run = True
@@ -9,6 +9,7 @@ fb.login("email", "pass")
 mid = "" #chat id (mid.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
 userid = "" # user id
 tid = "" # second user id
+
 def bg(mid):
     global run
     lastmsg = ""
